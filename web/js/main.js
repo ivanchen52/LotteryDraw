@@ -17,20 +17,14 @@ app.controller('GameCtrl', ['$scope', '$http', '$q', '$modal', '$confirm', '$win
     $scope.drawResult = [];             // 這次抽出的結果
     $scope.winners = [];                // 已經抽出的結果
 
+    $scope.enableTTS = false;
+
     $scope.insideDraw = false;
 
-    $scope.config = {
-        "enableTTS" : false,
-        "spinDelay" : 1000
-    };
+    $scope.debugMode = false;
 
     $scope.init = function() {
         var url = 'api/prizedata';
-
-        $http.get('config.json')
-            .success(function(data, status, header, config) {
-                $scope.config = data;
-            });
 
         // TODO: 顯示spin cursor
         //
@@ -51,6 +45,18 @@ app.controller('GameCtrl', ['$scope', '$http', '$q', '$modal', '$confirm', '$win
             });
     };
 
+	$scope.reload = function() {
+        $http.post('/api/reload')
+                    .success(function(data, status, header, config) {
+                        // $scope.reset(data);
+                        $window.location.reload();
+                    })
+                    .error(function(data, status, header, config) {
+                        $scope.error = error;
+                        // TODO: display error
+                    })
+    };
+	
     $scope.reset = function(data) {
         $scope.prizeList = data;
         $scope.drawResult = [];
@@ -68,7 +74,7 @@ app.controller('GameCtrl', ['$scope', '$http', '$q', '$modal', '$confirm', '$win
     };
 
     $scope.getTTSCmdString = function() {
-        if ($scope.config.enableTTS) {
+        if ($scope.enableTTS) {
             return "關閉語音唱名";
         }
         else {
@@ -77,7 +83,20 @@ app.controller('GameCtrl', ['$scope', '$http', '$q', '$modal', '$confirm', '$win
     };
 
     $scope.toggleTTS = function() {
-        $scope.config.enableTTS = !$scope.config.enableTTS;
+        $scope.enableTTS = !$scope.enableTTS;
+    };
+
+    $scope.getDebugModeString = function() {
+        if ($scope.debugMode) {
+            return "關閉開發模式";
+        }
+        else {
+            return "開啟開發模式";
+        }
+    };
+
+    $scope.toggleDebugMode = function() {
+        $scope.debugMode = !$scope.debugMode;
     };
 
     $scope.getFirstPrizeIndex = function() {
@@ -202,7 +221,18 @@ app.controller('GameCtrl', ['$scope', '$http', '$q', '$modal', '$confirm', '$win
         $scope.resetDraw();
 
         $scope.startSpin().then(function() {
-            var spinSound = new buzz.sound('/sound/drumroll', { formats: ['ogg'], loop:false});
+
+            var spinSound;
+            //有限制的獎用不同的音樂以營造刺激感
+            var musicname = '';
+            console.log('tag:'+$scope.prize.tag);
+            if($scope.prize.tag)
+                musicname = 'drumroll';
+            else
+                musicname = 'SevenColorLightquick2';
+
+            spinSound = new buzz.sound('/sound/'+musicname, { formats: ['ogg'], loop:false});
+
             spinSound.play();
             spinSound.bind('ended', function() {
                 var url = "/api/drawprize";
@@ -255,7 +285,8 @@ app.controller('GameCtrl', ['$scope', '$http', '$q', '$modal', '$confirm', '$win
 
         $scope.$broadcast('updateDraw', JSON.stringify(drawResult));
 
-        $scope.$broadcast('animateDraw', JSON.stringify($scope.config));
+        var setting = {enableTTS:$scope.enableTTS, delay:$scope.debugMode ? 1 : ($scope.enableTTS ? 1000 : 2000)};
+        $scope.$broadcast('animateDraw', JSON.stringify(setting));
     };
 
     $scope.onAnimateDrawDone = function() {
@@ -269,23 +300,6 @@ app.controller('GameCtrl', ['$scope', '$http', '$q', '$modal', '$confirm', '$win
                 // TODO: 顯示spin cursor
                 //
                 $http.post('/api/reset')
-                    .success(function(data, status, header, config) {
-                        // $scope.reset(data);
-                        $window.location.reload();
-                    })
-                    .error(function(data, status, header, config) {
-                        $scope.error = error;
-                        // TODO: display error
-                    })
-            });
-    };
-
-    $scope.reloadGame = function() {
-        $confirm.confirm('確定要重新載入獎項/人員資料嗎？（所有的得獎紀錄會保存！)')
-            .then(function() {
-                // TODO: 顯示spin cursor
-                //
-                $http.post('/api/reload')
                     .success(function(data, status, header, config) {
                         // $scope.reset(data);
                         $window.location.reload();
@@ -490,7 +504,7 @@ app.controller('GameCtrl', ['$scope', '$http', '$q', '$modal', '$confirm', '$win
 
             // 抽獎後 => animateTiles
             //
-            $scope.animateTiles = function(config, tiles) {
+            $scope.animateTiles = function(setting, tiles) {
                 tiles = tiles || $('.mg-tile-inner').toArray();
                 if (tiles.length > 0) {
                     var tile = tiles.shift();
@@ -509,18 +523,18 @@ app.controller('GameCtrl', ['$scope', '$http', '$q', '$modal', '$confirm', '$win
                         setTimeout(function() {
                             // anounce name of the winnner
                             //
-                            if (config.enableTTS) {
+                            if (setting.enableTTS) {
                                 var tts = new buzz.sound('/tts/' + draw.tts);
                                 tts.bind('ended', function() {
-                                    $scope.animateTiles(config, tiles);
+                                    $scope.animateTiles(setting, tiles);
                                 });
 
                                 tts.play();
                             }
                             else {
-                                $scope.animateTiles(config, tiles);
+                                $scope.animateTiles(setting, tiles);
                             }
-                        }, config.spinDelay);
+                        }, setting.delay);
                     }
                 }
                 else {

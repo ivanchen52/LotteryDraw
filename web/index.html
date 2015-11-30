@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
     <!-- title -->
-    <title>抽獎程式</title>
+    <title>嘉實尾牙 - 抽抽樂</title>
 
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.css">
@@ -32,24 +32,27 @@
 
     <div class="mg-canvas">
         <div class="page-header mg-header">
-            <div class="mg-header-title">歲末抽抽樂</div>
+            <div class="mg-header-title">嘉實資訊 - 尾牙抽抽樂</div>
             <div class="btn-group-lg" style="position:absolute; top: 20px; right: 20px">
-                <button class="btn-lg btn-info" style="margin-right:20px; width:140px" ng-disabled="!canDraw()" ng-click="draw()">SPIN</button>
+                <button class="btn-lg btn-info" style="margin-right:20px; width:140px" ng-disabled="!canDraw()" ng-click="draw()">轉吧!</button>
                 <button class="btn-lg btn-success" ng-click="nextPrize(-1)" ng-disabled="!canNextPrize(-1)"><span class="glyphicon glyphicon-arrow-left"></span>&nbsp;上一獎</button>
                 <button class="btn-lg btn-success" ng-click="nextPrize(1)" ng-disabled="!canNextPrize(1)">下一獎&nbsp;<span class="glyphicon glyphicon-arrow-right"></span></button>
                 <div class="btn-group">
                     <button class="btn dropdown-toggle btn-primary" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span></button>
                     <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                        <li><a class="btn-lg" ng-click="refresh()">Refresh</a></li>
-                        <li><a class="btn-lg" ng-click="print()">Print</a></li>
+						<li><a class="btn-lg" ng-click="reload()">重新讀取獎項</a></li>
+                        <li><a class="btn-lg" ng-click="refresh()">刷新頁面</a></li>
+                        <li><a class="btn-lg" ng-click="print()">列印</a></li>
                         <li class="divider"></li>
                         <li><a class="btn-lg" ng-click="toggleTTS()">{{getTTSCmdString()}}</a></li>
-                        <li><a class="btn-lg" ng-href="result.html" target="_self">顯示全部得獎名單</a></li>
-                        <li><a class="btn-lg" ng-href="{{'candidates.html?groupId=' + getPrizeGroupId()}}" target="_self">顯示尚未抽出名單</a></li>
+						<li><a class="btn-lg" ng-href="{{'candidates2.html?groupId=' + getPrizeGroupId()}}" target="_self">顯示候選人名單</a></li>
+                        <li><a class="btn-lg" ng-href="result.html" target="_self">顯示得獎者名單</a></li>
                         <li class="divider"></li>
-                        <li><a class="btn-lg" ng-click="reloadGame()">重新載入資料</a></li>
+                        <li><a class="btn-lg" ng-href="{{'canstarwars.html?groupId=' + getPrizeGroupId()}}" target="_self">大獎候選人名單</a></li>
                         <li class="divider"></li>
+                        <li><a class="btn-lg" ng-click="toggleDebugMode()">{{getDebugModeString()}}</a></li>
                         <li><a class="btn-lg" ng-click="resetGame()">!! 重來一遍 !!</a></li>
+
                     </ul>
                 </div>
             </div>
